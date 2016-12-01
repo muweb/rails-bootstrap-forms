@@ -338,14 +338,16 @@ module BootstrapForm
       end
 
       unless options.delete(:skip_label)
+        label_for = css_options[:id] # fix: set proper for information when an id is set for the control
         if options[:label].is_a?(Hash)
           label_text  = options[:label].delete(:text)
           label_class = options[:label].delete(:class)
+          label_for = options[:label].delete(:for) if options[:label].has_key?(:for) # fix: preserve for information
           options.delete(:label)
         end
         label_class ||= options.delete(:label_class)
         label_class = hide_class if options.delete(:hide_label)
-
+        
         if options[:label].is_a?(String)
           label_text ||= options.delete(:label)
         end
