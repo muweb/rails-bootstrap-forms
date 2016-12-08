@@ -200,7 +200,10 @@ module BootstrapForm
       options[:class] = ["form-group", options[:class]].compact.join(' ')
       options[:class] << " #{error_class}" if has_error?(name)
       options[:class] << " #{feedback_class}" if options[:icon]
-
+      
+      # allow to use a string for label in form_group, like for other tags
+      options[:label] = { text: options[:label] } if options[:label].is_a?(String)
+      
       content_tag(:div, options.except(:id, :label, :help, :icon, :label_col, :control_col, :layout)) do
         label = generate_label(options[:id], name, options[:label], options[:label_col], options[:layout]) if options[:label]
         control = capture(&block).to_s
@@ -314,7 +317,13 @@ module BootstrapForm
       control_classes = css_options.delete(:control_class) { control_class }
       css_options[:class] = [control_classes, css_options[:class]].compact.join(" ")
 
-      options = convert_form_tag_options(method, options) if acts_like_form_tag
+      if acts_like_form_tag
+        options = convert_form_tag_options(method, options)
+        # fix name and id for input/select tag when there is no object to refer to
+        html_options ||= {}
+        html_options[:name] ||= options[:name]
+        html_options[:id] ||= options[:id]
+      end
 
       wrapper_class = css_options.delete(:wrapper_class)
       wrapper_options = css_options.delete(:wrapper)
