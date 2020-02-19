@@ -61,7 +61,11 @@ module BootstrapForm
     end
 
     def file_field_with_bootstrap(name, options = {})
-      form_group_builder(name, options.reverse_merge(control_class: nil)) do
+      # form_group_builder(name, options.reverse_merge(control_class: nil)) do
+
+      # FIX to allow options changed in form_group_builder to be properly passed to file_field
+      options[:control_class] = nil unless options.has_key?(:control_class)
+      form_group_builder(name, options) do
         file_field_without_bootstrap(name, options)
       end
     end
@@ -219,10 +223,10 @@ module BootstrapForm
       options[:class] = ["form-group", options[:class]].compact.join(' ')
       options[:class] << " #{error_class}" if has_error?(name)
       options[:class] << " #{feedback_class}" if options[:icon]
-      
+
       # allow to use a string for label in form_group, like for other tags
       options[:label] = { text: options[:label] } if options[:label].is_a?(String)
-      
+
       content_tag(:div, options.except(:id, :label, :help, :icon, :label_col, :control_col, :layout)) do
         label = generate_label(options[:id], name, options[:label], options[:label_col], options[:layout]) if options[:label]
         control = capture(&block).to_s
@@ -311,17 +315,17 @@ module BootstrapForm
       target = (obj.class == Class) ? obj : obj.class
 
       target_validators = if target.respond_to? :validators_on
-                            target.validators_on(attribute).map(&:class)
-                          else
-                            []
-                          end
+        target.validators_on(attribute).map(&:class)
+      else
+        []
+      end
 
       has_presence_validator = target_validators.include?(
-                                 ActiveModel::Validations::PresenceValidator)
+      ActiveModel::Validations::PresenceValidator)
 
       if defined? ActiveRecord::Validations::PresenceValidator
         has_presence_validator |= target_validators.include?(
-                                    ActiveRecord::Validations::PresenceValidator)
+        ActiveRecord::Validations::PresenceValidator)
       end
 
       has_presence_validator
@@ -377,11 +381,11 @@ module BootstrapForm
         end
         label_class ||= options.delete(:label_class)
         label_class = hide_class if options.delete(:hide_label)
-        
+
         form_group_options.merge!(label: {
-          text: label_text,
-          class: label_class,
-          skip_required: options.delete(:skip_required)
+                                    text: label_text,
+                                    class: label_class,
+                                    skip_required: options.delete(:skip_required)
         })
         form_group_options[:label][:for] = label_for unless label_for.nil? # fix label for
       end
@@ -444,9 +448,9 @@ module BootstrapForm
           input_value = value.respond_to?(:call) ? value.call(obj) : obj.send(value)
           if checked = input_options[:checked]
             input_options[:checked] = checked == input_value                     ||
-                                      Array(checked).try(:include?, input_value) ||
-                                      checked == obj                             ||
-                                      Array(checked).try(:include?, obj)
+              Array(checked).try(:include?, input_value) ||
+              checked == obj                             ||
+              Array(checked).try(:include?, obj)
           end
 
           input_options.delete(:class)
@@ -471,9 +475,9 @@ module BootstrapForm
         downcased_scope = "activerecord.help.#{partial_scope.downcase}"
         help_text = I18n.t(name, scope: underscored_scope, default: '').presence
         help_text ||= if text = I18n.t(name, scope: downcased_scope, default: '').presence
-                        warn "I18n key '#{downcased_scope}.#{name}' is deprecated, use '#{underscored_scope}.#{name}' instead"
-                        text
-                      end
+          warn "I18n key '#{downcased_scope}.#{name}' is deprecated, use '#{underscored_scope}.#{name}' instead"
+          text
+        end
         help_text
       end
     end
